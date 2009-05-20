@@ -1,14 +1,16 @@
+require 'digest/sha1'
+
 class User
   include DataMapper::Resource
 
   attr_accessor :password, :password_confirmation
 
-  property :id, Serial, :protected => true
-  property :email, String, :key => true, :nullable => false, :length => (5..40), :unique => true, :format => :email_address
-  property :hashed_password, String
-  property :salt, String, :protected => true, :nullable => false
-  property :created_at, DateTime
-  property :permission_level, Integer, :default => 1
+  property :id, Serial, :auto_validation => true, :lazy => false
+  property :email, String, :nullable => false, :length => (5..40), :unique => true, :format => :email_address, :auto_validation => true, :lazy => false
+  property :hashed_password, String, :auto_validation => true, :lazy => false
+  property :salt, String, :nullable => false, :auto_validation => true, :lazy => false
+  property :created_at, Time, :auto_validation => true, :lazy => false
+  property :permission_level, Integer, :default => 1, :auto_validation => true, :lazy => false
 
   validates_present :password_confirmation, :unless => Proc.new { |t| t.hashed_password }
   validates_present :password, :unless => Proc.new { |t| t.hashed_password }
@@ -33,7 +35,7 @@ class User
   protected
 
   def self.encrypt(pass, salt)
-    Digest::SHA1.hexdigest(pass+salt)
+    ::Digest::SHA1.hexdigest(pass+salt)
   end
 
   def self.random_string(len)
